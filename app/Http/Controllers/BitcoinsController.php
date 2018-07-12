@@ -34,6 +34,7 @@ class BitcoinsController extends Controller
         else {
             $bitcoinStatData = Bitcoin::getBitcoinStatOne($symbol);
         }
-        return view('bitcoinStatOne')->with("bitcoinStatData",$bitcoinStatData);
+        
+        return response()->json(['count'=>count($bitcoinStatData),'data'=>$bitcoinStatData]);
     }
 }

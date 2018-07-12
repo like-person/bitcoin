@@ -37,16 +37,16 @@
                 <tr>
                   <td>{{ $bitcoinStat->coin_name }}</td>
                   @if ($bitcoinStat->coin_stat_price > $bitcoinStat->old_stat_price)
-                  <td class="success">{{ $bitcoinStat->coin_stat_price }}</td>
+                  <td class="text-success">{{ $bitcoinStat->coin_stat_price }}</td>
                   @elseif ($bitcoinStat->coin_stat_price < $bitcoinStat->old_stat_price)
-                  <td class="danger">{{ $bitcoinStat->coin_stat_price }}</td>
+                  <td class="text-danger">{{ $bitcoinStat->coin_stat_price }}</td>
                   @else
                   <td>{{ $bitcoinStat->coin_stat_price }}</td>
                   @endif
                   @if ($bitcoinStat->coin_stat_perc > $bitcoinStat->old_stat_perc)
-                  <td class="success">{{ $bitcoinStat->coin_stat_perc }}</td>
+                  <td class="text-success">{{ $bitcoinStat->coin_stat_perc }}</td>
                   @elseif ($bitcoinStat->coin_stat_perc < $bitcoinStat->old_stat_perc)
-                  <td class="danger">{{ $bitcoinStat->coin_stat_perc }}</td>
+                  <td class="text-danger">{{ $bitcoinStat->coin_stat_perc }}</td>
                   @else
                   <td>{{ $bitcoinStat->coin_stat_perc }}</td>
                   @endif
@@ -63,25 +63,51 @@
     <script>
 
 $(function() {
-
-    $('#coinForm').on('submit',function(event){
-        event = event || window.event;
-        var symbol = $('input[name=coin_symbol]').val();
+    load_stat('');
+    function load_stat(symbol) {
+        var row, td_name, td_price, td_perc;
         $.ajax({
             url: '/public/bitcoinStatOne/'+symbol,
-            success: function (data) {
-                $('#bitcoinStat tbody').html(data);
+            success: function (msg) {
+                if (msg.count > 0){
+                    var data = msg.data;
+                    $('#bitcoinStat tbody').html('');
+                    for(var i=0; i<data.length; i++ ){
+                        row = $('<tr>');
+                        td_name = $('<td>'+data[i].coin_name+'</td>');
+                        row.append(td_name);
+                        
+                        td_price = $('<td>'+data[i].coin_stat_price+'</td>');
+                        if(data[i].coin_stat_price>data[i].old_stat_price)td_price.addClass('text-success');
+                        if(data[i].coin_stat_price<data[i].old_stat_price)td_price.addClass('text-danger');
+                        row.append(td_price);
+                        
+                        td_perc = $('<td>'+data[i].coin_stat_perc+'</td>');
+                        if(data[i].coin_stat_perc>data[i].old_stat_perc)td_perc.addClass('text-success');
+                        if(data[i].coin_stat_perc<data[i].old_stat_perc)td_perc.addClass('text-danger');
+                        row.append(td_perc);
+                        
+                        $('#bitcoinStat tbody').append(row);
+                    }
+                }else {
+                    alert('Data not exist');
+                }
             },
             error: function (msg) {
                 alert('Ошибка: '+msg);
             }
         });
+    }
+    $('#coinForm').on('submit',function(event){
+        event = event || window.event;
+        var symbol = $('input[name=coin_symbol]').val();
+        load_stat(symbol);
         event.preventDefault ? event.preventDefault() : (event.returnValue=false);
     });
     $('input[name=coin_reset]').on('click',function(event){
         event = event || window.event;
         $('input[name=coin_symbol]').val('');
-        $('#coinForm').trigger('submit');
+        load_stat('');
         event.preventDefault ? event.preventDefault() : (event.returnValue=false);
     })
 });
